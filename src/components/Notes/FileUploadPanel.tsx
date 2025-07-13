@@ -417,11 +417,11 @@ export function FileUploadPanel({ onFileInsert, onClose }: FileUploadPanelProps)
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Success Message */}
         {showSuccessMessage && (
-          <div className="absolute top-4 right-4 z-10 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-slide-in-right">
+          <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-10 bg-green-500 text-white px-3 sm:px-6 py-2 sm:py-4 rounded-lg shadow-lg flex items-center space-x-2 sm:space-x-3 animate-slide-in-right max-w-xs sm:max-w-none">
             <CheckCircle className="w-6 h-6" />
             <div>
-              <p className="font-semibold">Upload Successful!</p>
-              <p className="text-sm opacity-90">
+              <p className="font-semibold text-sm sm:text-base">Upload Successful!</p>
+              <p className="text-xs sm:text-sm opacity-90">
                 {uploadSuccess.length === 1 
                   ? `${uploadSuccess[0]} uploaded successfully`
                   : `${uploadSuccess.length} files uploaded successfully`
@@ -432,35 +432,36 @@ export function FileUploadPanel({ onFileInsert, onClose }: FileUploadPanelProps)
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
               <Cloud className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Upload Content & Media
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Files are stored securely in Supabase Storage
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
             {/* Save All Button */}
             {mediaFiles.length > 0 && (
               <button
                 onClick={insertAllFiles}
                 disabled={uploading}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors text-sm sm:text-base"
               >
                 <Save className="w-4 h-4" />
-                <span>Save All ({mediaFiles.length})</span>
+                <span className="hidden sm:inline">Save All ({mediaFiles.length})</span>
+                <span className="sm:hidden">Save ({mediaFiles.length})</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <X className="w-5 h-5" />
             </button>
@@ -469,55 +470,55 @@ export function FileUploadPanel({ onFileInsert, onClose }: FileUploadPanelProps)
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Upload Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => imageInputRef.current?.click()}
               disabled={uploading}
-              className="flex flex-col items-center p-6 border-2 border-dashed border-green-300 dark:border-green-600 rounded-xl hover:border-green-500 dark:hover:border-green-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center p-3 sm:p-6 border-2 border-dashed border-green-300 dark:border-green-600 rounded-xl hover:border-green-500 dark:hover:border-green-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Image className="w-8 h-8 text-green-500 mb-3" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Images</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, PNG, GIF</span>
+              <Image className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mb-2 sm:mb-3" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Images</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">JPG, PNG, GIF</span>
             </button>
             
             <button
               type="button"
               onClick={() => videoInputRef.current?.click()}
               disabled={uploading}
-              className="flex flex-col items-center p-6 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center p-3 sm:p-6 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Video className="w-8 h-8 text-blue-500 mb-3" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Videos</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">MP4, WebM</span>
+              <Video className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 mb-2 sm:mb-3" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Videos</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">MP4, WebM</span>
             </button>
             
             <button
               type="button"
               onClick={() => pdfInputRef.current?.click()}
               disabled={uploading}
-              className="flex flex-col items-center p-6 border-2 border-dashed border-red-300 dark:border-red-600 rounded-xl hover:border-red-500 dark:hover:border-red-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center p-3 sm:p-6 border-2 border-dashed border-red-300 dark:border-red-600 rounded-xl hover:border-red-500 dark:hover:border-red-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FileText className="w-8 h-8 text-red-500 mb-3" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">PDFs</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Documents</span>
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mb-2 sm:mb-3" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">PDFs</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">Documents</span>
             </button>
 
             <button
               type="button"
               onClick={() => documentInputRef.current?.click()}
               disabled={uploading}
-              className="flex flex-col items-center p-6 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-xl hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center p-3 sm:p-6 border-2 border-dashed border-purple-300 dark:border-purple-600 rounded-xl hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FileText className="w-8 h-8 text-purple-500 mb-3" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Documents</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">DOC, TXT</span>
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mb-2 sm:mb-3" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Documents</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">DOC, TXT</span>
             </button>
             
-            <div className="flex flex-col items-center p-6 border-2 border-dashed border-teal-300 dark:border-teal-600 rounded-xl bg-white dark:bg-gray-800">
-              <Link className="w-8 h-8 text-teal-500 mb-3" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Links</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">External URLs</span>
+            <div className="flex flex-col items-center p-3 sm:p-6 border-2 border-dashed border-teal-300 dark:border-teal-600 rounded-xl bg-white dark:bg-gray-800 col-span-2 sm:col-span-1">
+              <Link className="w-6 h-6 sm:w-8 sm:h-8 text-teal-500 mb-2 sm:mb-3" />
+              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Links</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">External URLs</span>
             </div>
           </div>
 

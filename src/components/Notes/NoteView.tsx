@@ -323,9 +323,10 @@ export function NoteView({ note, category, onExport }: NoteViewProps) {
     const supabaseUrls = note.content.match(/https:\/\/[^"'\s]+supabase[^"'\s]+/g) || [];
     
     if (supabaseUrls.length > 0) {
-      // If there are Supabase URLs, open the first PDF/document URL
+      // If there are Supabase URLs, show them in a modal for user to access
       const pdfUrl = supabaseUrls.find(url => url.includes('.pdf')) || supabaseUrls[0];
-      window.open(pdfUrl, '_blank');
+      const fileName = pdfUrl.split('/').pop() || 'document.pdf';
+      setDownloadModal({ isOpen: true, url: pdfUrl, fileName });
     } else {
       // Fallback to markdown export if no Supabase URLs found
       const pdfContent = `# ${note.title}
@@ -374,8 +375,8 @@ ${note.content}
 
   // Function to handle file downloads - shows URL modal
   const handleFileDownload = (url: string, fileName: string) => {
-    // Directly open the Supabase URL in a new tab
-    window.open(url, '_blank');
+    // Show the download modal with the Supabase URL
+    setDownloadModal({ isOpen: true, url, fileName });
   };
 
   const handleCopyUrl = async (url: string) => {
@@ -556,11 +557,11 @@ ${note.content}
                     return (
                       <div className="inline-flex items-center space-x-2 mb-3">
                         <button
-                          onClick={() => handleFileDownload(href, fileName)}
+                          onClick={() => setDownloadModal({ isOpen: true, url: href, fileName })}
                           className="pdf-download-btn inline-flex items-center space-x-2 text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg"
                         >
                           <Download className="w-5 h-5" />
-                          <span>Open Original File</span>
+                          <span>Download File</span>
                         </button>
                         <button
                           onClick={() => handleCopyUrl(href)}
@@ -630,7 +631,7 @@ ${note.content}
                           className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
                         >
                           <Download className="w-4 h-4" />
-                          <span>Open Original</span>
+                          <span>Download</span>
                         </button>
                         <a
                           href={src}
@@ -660,11 +661,11 @@ ${note.content}
                       </p>
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleFileDownload(src || '', fileName)}
+                          onClick={() => setDownloadModal({ isOpen: true, url: src || '', fileName })}
                           className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
                         >
                           <Download className="w-4 h-4" />
-                          <span>Open Original</span>
+                          <span>Download</span>
                         </button>
                         <button
                           onClick={() => handleCopyUrl(src || '')}
@@ -775,6 +776,12 @@ ${note.content}
       />
 
       {/* Download URL Modal */}
+      <DownloadUrlModal
+        isOpen={downloadModal.isOpen}
+        onClose={closeDownloadModal}
+        fileUrl={downloadModal.url}
+        fileName={downloadModal.fileName}
+      />
     </div>
   );
 }

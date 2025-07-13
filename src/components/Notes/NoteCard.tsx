@@ -30,8 +30,47 @@ export function NoteCard({ note, category }: NoteCardProps) {
     const supabaseUrls = note.content.match(/https:\/\/[^"'\s]+supabase[^"'\s]+/g) || [];
     
     if (supabaseUrls.length > 0) {
-      // If there are Supabase URLs, open the first one (or show a selection if multiple)
-      window.open(supabaseUrls[0], '_blank');
+      // If there are Supabase URLs, open the first one in a new tab to show the URL
+      const fileUrl = supabaseUrls[0];
+      // Create a simple page that shows the URL and opens the file
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>File Access - ${note.title}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .url-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin: 20px 0; word-break: break-all; font-family: monospace; }
+              .btn { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 5px 0 0; }
+              .btn:hover { background: #0056b3; }
+              .btn-success { background: #28a745; }
+              .btn-success:hover { background: #1e7e34; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>📄 File Access</h2>
+              <p><strong>Note:</strong> ${note.title}</p>
+              <p>Here is the direct Supabase URL to access your file:</p>
+              <div class="url-box">${fileUrl}</div>
+              <a href="${fileUrl}" target="_blank" class="btn btn-success">🔗 Open File in New Tab</a>
+              <button onclick="navigator.clipboard.writeText('${fileUrl}').then(() => alert('URL copied to clipboard!'))" class="btn">📋 Copy URL</button>
+              <button onclick="window.close()" class="btn" style="background: #6c757d;">✖️ Close</button>
+            </div>
+            <script>
+              // Auto-focus and select the URL for easy copying
+              window.onload = function() {
+                console.log('File URL: ${fileUrl}');
+              }
+            </script>
+          </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
     } else {
       // Fallback to markdown export if no Supabase URLs found
       const content = `# ${note.title}\n\n${note.content}`;

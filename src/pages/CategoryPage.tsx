@@ -81,47 +81,48 @@ export function CategoryPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <Link
             to="/"
-            className="inline-flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 text-sm sm:text-base"
           >
             <Home className="w-4 h-4" />
             <span>Home</span>
           </Link>
           <Link
             to="/notes"
-            className="inline-flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+            className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>All Notes</span>
+            <span className="hidden sm:inline">All Notes</span>
+            <span className="sm:hidden">Notes</span>
           </Link>
         </div>
       </div>
 
       {/* Category Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:p-8">
         <div className="flex items-center space-x-4 mb-4">
           <div
-            className="w-12 h-12 rounded-full flex items-center justify-center"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center"
             style={{ backgroundColor: category.color }}
           >
-            <Folder className="w-6 h-6 text-white" />
+            <Folder className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
               {category.name}
             </h1>
             {category.description && (
-              <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 mt-2">
                 {category.description}
               </p>
             )}
           </div>
         </div>
         
-        <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-1">
             <BookOpen className="w-4 h-4" />
             <span>{notes.length} {notes.length === 1 ? 'note' : 'notes'}</span>
@@ -145,7 +146,7 @@ export function CategoryPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {notes.map((note, index) => (
               <div
                 key={note.id}
@@ -160,17 +161,17 @@ export function CategoryPage() {
       </div>
 
       {/* Category Footer */}
-      <div className="text-center py-8 border-t border-gray-200 dark:border-gray-700">
+      <div className="text-center py-6 sm:py-8 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-2xl mx-auto">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
             Explore More Categories
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 px-4">
             Discover more technical content across different topics and domains.
           </p>
           <Link
             to="/notes"
-            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105"
+            className="inline-flex items-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 text-sm sm:text-base"
           >
             <BookOpen className="w-5 h-5" />
             <span>Browse All Notes</span>

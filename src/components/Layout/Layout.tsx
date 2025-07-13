@@ -16,13 +16,13 @@ export function Layout({ showSearch, onSearchChange, searchQuery }: LayoutProps)
   const { notes, categories } = useNotes();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors overflow-x-hidden">
       <Header
         onSearchChange={showSearch ? onSearchChange : undefined}
         searchQuery={searchQuery}
       />
       
-      <div className="flex">
+      <div className="flex relative">
         <Sidebar
           categories={categories}
           recentNotes={notes}
@@ -30,16 +30,16 @@ export function Layout({ showSearch, onSearchChange, searchQuery }: LayoutProps)
           onClose={() => setSidebarOpen(false)}
         />
         
-        <main className="flex-1 lg:ml-0">
+        <main className="flex-1 lg:ml-0 min-w-0">
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden fixed bottom-4 left-4 z-40 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+            className="lg:hidden fixed bottom-6 left-6 z-40 btn-responsive !p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110"
           >
             <Menu className="w-5 h-5" />
           </button>
           
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="container-responsive py-dynamic">
             <Outlet />
           </div>
         </main>
