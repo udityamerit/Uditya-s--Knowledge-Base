@@ -18,7 +18,7 @@ export function useCategories() {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('name');
+        .order('name', { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);

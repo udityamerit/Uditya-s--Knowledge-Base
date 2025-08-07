@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Save, X, Palette } from 'lucide-react';
+import { BackButton } from '../Layout/BackButton';
 import type { Database } from '../../lib/supabase';
 
 type Category = Database['public']['Tables']['categories']['Row'];
@@ -52,9 +53,11 @@ export function CategoryEditor({ category, onSave, onCancel, loading }: Category
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {category ? 'Edit Category' : 'Create New Category'}
-            </h2>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {category ? 'Edit Category' : 'Create New Category'}
+              </h2>
+            </div>
             <button
               type="button"
               onClick={onCancel}

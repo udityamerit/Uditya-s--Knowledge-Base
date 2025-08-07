@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, BarChart3, Clock, BookOpen, ArrowLeft, Folder, Tag, AlertTriangle, FolderPlus } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, BarChart3, Clock, BookOpen, Folder, Tag, AlertTriangle, FolderPlus, Brain, Code, Database, FileText, Lightbulb, FolderOpen } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useNotes } from '../hooks/useNotes';
 import { useCategories } from '../hooks/useCategories';
 import { useFolders } from '../hooks/useFolders';
 import { CategoryEditor } from '../components/Categories/CategoryEditor';
 import { FolderEditor } from '../components/Folders/FolderEditor';
+import { BackButton } from '../components/Layout/BackButton';
 
 export function AdminDashboard() {
   const { notes, loading: notesLoading, deleteNote } = useNotes();
@@ -17,6 +18,7 @@ export function AdminDashboard() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingFolder, setEditingFolder] = useState(null);
   const [selectedCategoryForFolder, setSelectedCategoryForFolder] = useState('');
+  const [parentFolderForNew, setParentFolderForNew] = useState('');
   const [categoryLoading, setCategoryLoading] = useState(false);
   const [folderLoading, setFolderLoading] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -24,6 +26,52 @@ export function AdminDashboard() {
     id: string;
     name: string;
   } | null>(null);
+  
+  // Function to get appropriate folder icon based on folder name and content
+  const getFolderIcon = (folderName: string) => {
+    const name = folderName.toLowerCase();
+    
+    // AI/ML related folders
+    if (name.includes('ai') || name.includes('artificial') || name.includes('intelligence') || 
+        name.includes('ml') || name.includes('machine') || name.includes('learning') ||
+        name.includes('neural') || name.includes('deep')) {
+      return <Brain className="w-4 h-4" />;
+    }
+    
+    // Programming/Code related folders
+    if (name.includes('code') || name.includes('programming') || name.includes('python') ||
+        name.includes('javascript') || name.includes('react') || name.includes('algorithm') ||
+        name.includes('development') || name.includes('software')) {
+      return <Code className="w-4 h-4" />;
+    }
+    
+    // Data Science/Analytics related folders
+    if (name.includes('data') || name.includes('analytics') || name.includes('statistics') ||
+        name.includes('analysis') || name.includes('visualization') || name.includes('science')) {
+      return <BarChart3 className="w-4 h-4" />;
+    }
+    
+    // Database related folders
+    if (name.includes('database') || name.includes('sql') || name.includes('db') ||
+        name.includes('storage') || name.includes('query')) {
+      return <Database className="w-4 h-4" />;
+    }
+    
+    // Documentation/Notes related folders
+    if (name.includes('doc') || name.includes('note') || name.includes('guide') ||
+        name.includes('tutorial') || name.includes('reference') || name.includes('manual')) {
+      return <FileText className="w-4 h-4" />;
+    }
+    
+    // Research/Theory related folders
+    if (name.includes('research') || name.includes('theory') || name.includes('concept') ||
+        name.includes('idea') || name.includes('innovation') || name.includes('study')) {
+      return <Lightbulb className="w-4 h-4" />;
+    }
+    
+    // Default folder icon
+    return <Folder className="w-4 h-4" />;
+  };
 
   const handleDeleteNote = async (id: string, title: string) => {
     setDeleteConfirmation({ type: 'note', id, name: title });
@@ -103,12 +151,17 @@ export function AdminDashboard() {
           setShowFolderEditor(false);
           setEditingFolder(null);
           setSelectedCategoryForFolder('');
+          setParentFolderForNew('');
         }
       } else {
-        const result = await createFolder(data);
+        const folderData = parentFolderForNew 
+          ? { ...data, parent_folder_id: parentFolderForNew }
+          : data;
+        const result = await createFolder(folderData);
         if (result.success) {
           setShowFolderEditor(false);
           setSelectedCategoryForFolder('');
+          setParentFolderForNew('');
         }
       }
     } catch (error) {
@@ -133,6 +186,13 @@ export function AdminDashboard() {
     setShowFolderEditor(true);
   };
 
+  const handleCreateSubfolder = (parentFolderId: string, categoryId: string) => {
+    setSelectedCategoryForFolder(categoryId);
+    setParentFolderForNew(parentFolderId);
+    setEditingFolder(null);
+    setShowFolderEditor(true);
+  };
+
   const handleCancelCategoryEditor = () => {
     setShowCategoryEditor(false);
     setEditingCategory(null);
@@ -142,6 +202,69 @@ export function AdminDashboard() {
     setShowFolderEditor(false);
     setEditingFolder(null);
     setSelectedCategoryForFolder('');
+    setParentFolderForNew('');
+  };
+
+  const renderFolderTree = (folders: any[], categoryId: string, depth = 0) => {
+    return folders
+      .filter(folder => folder.category_id === categoryId)
+      .map((folder) => {
+        const notesInFolder = notes.filter(note => note.folder_id === folder.id).length;
+        const subfolders = folders.filter(f => f.parent_folder_id === folder.id);
+        const indentClass = depth > 0 ? 'ml-6' : '';
+        
+        return (
+          <div key={folder.id} className={indentClass}>
+            <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded mb-2">
+              <div className="flex items-center space-x-3">
+                <div className="text-gray-600 dark:text-gray-400">
+                  {getFolderIcon(folder.name)}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {folder.name}
+                    {depth > 0 && <span className="text-xs text-gray-500 ml-2">(subfolder)</span>}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {notesInFolder} {notesInFolder === 1 ? 'note' : 'notes'}
+                    {subfolders.length > 0 && ` • ${subfolders.length} ${subfolders.length === 1 ? 'subfolder' : 'subfolders'}`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => handleCreateSubfolder(folder.id, categoryId)}
+                  className="p-1 text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                  title="Add Subfolder"
+                >
+                  <FolderPlus className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleEditFolder(folder)}
+                  className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  title="Edit Folder"
+                >
+                  <Edit className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => handleDeleteFolder(folder.id, folder.name)}
+                  className="p-1 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  title="Delete Folder"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Render subfolders recursively */}
+            {subfolders.length > 0 && (
+              <div className="ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">
+                {renderFolderTree(folders, categoryId, depth + 1)}
+              </div>
+            )}
+          </div>
+        );
+      });
   };
 
   const stats = {
@@ -213,15 +336,8 @@ export function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center space-x-4 mb-2">
-            <Link
-              to="/notes"
-              className="inline-flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back to Public View</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
+          <div className="mb-2">
+            <BackButton fallbackTo="/notes" />
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
             Content Management Dashboard
@@ -394,41 +510,7 @@ export function AdminDashboard() {
                   {categoryFolders.length > 0 && (
                     <div className="mt-4 ml-6 sm:ml-8 space-y-2 border-l border-gray-200 dark:border-gray-700 pl-4">
                       <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Folders:</h4>
-                      {categoryFolders.map((folder) => {
-                        const notesInFolder = notes.filter(note => note.folder_id === folder.id).length;
-                        return (
-                          <div key={folder.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded">
-                            <div className="flex items-center space-x-3">
-                              <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: folder.color }}
-                              />
-                              <div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">{folder.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  {notesInFolder} {notesInFolder === 1 ? 'note' : 'notes'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => handleEditFolder(folder)}
-                                className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                title="Edit Folder"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteFolder(folder.id, folder.name)}
-                                className="p-1 text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                                title="Delete Folder"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {renderFolderTree(folders.filter(f => !f.parent_folder_id), category.id)}
                     </div>
                   )}
                 </div>
@@ -470,6 +552,7 @@ export function AdminDashboard() {
           ) : (
             notes.slice(0, 10).map((note) => {
               const category = categories.find(cat => cat.id === note.category_id);
+              const folder = folders.find(f => f.id === note.folder_id);
               const hasMediaContent = note.content.includes('📄') || note.content.includes('<iframe') || note.content.includes('![') || note.content.includes('data:');
               
               return (
@@ -490,6 +573,17 @@ export function AdminDashboard() {
                               }}
                             >
                               {category.name}
+                            </span>
+                          )}
+                          {folder && (
+                            <span
+                              className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full"
+                              style={{
+                                backgroundColor: `${folder.color}20`,
+                                color: folder.color,
+                              }}
+                            >
+                              📁 {folder.name}
                             </span>
                           )}
                           {hasMediaContent && (
@@ -591,6 +685,7 @@ export function AdminDashboard() {
           folder={editingFolder}
           categories={categories}
           selectedCategoryId={selectedCategoryForFolder}
+          parentFolderId={parentFolderForNew || editingFolder?.parent_folder_id}
           onSave={handleSaveFolder}
           onCancel={handleCancelFolderEditor}
           loading={folderLoading}

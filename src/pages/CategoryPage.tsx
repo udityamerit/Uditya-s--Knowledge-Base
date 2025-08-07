@@ -1,27 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Home, Folder, BookOpen } from 'lucide-react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { Folder, BookOpen, ChevronRight, Brain, Code, Database, BarChart3, FileText, Lightbulb, FolderOpen } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { NoteCard } from '../components/Notes/NoteCard';
-import type { Database } from '../lib/supabase';
+import { BackButton } from '../components/Layout/BackButton';
+import { useFolders } from '../hooks/useFolders';
+import type { Database as DBType } from '../lib/supabase';
 
-type Note = Database['public']['Tables']['notes']['Row'];
-type Category = Database['public']['Tables']['categories']['Row'];
+type Note = DBType['public']['Tables']['notes']['Row'];
+type Category = DBType['public']['Tables']['categories']['Row'];
+type Folder = DBType['public']['Tables']['folders']['Row'];
 
 export function CategoryPage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const folderId = searchParams.get('folder');
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const { folders, getFoldersByCategory, getFoldersByParent, getFolderPath } = useFolders();
+  
+  // Function to get appropriate folder icon based on folder name and content
+  const getFolderIcon = (folderName: string) => {
+    const name = folderName.toLowerCase();
+    
+    // AI/ML related folders
+    if (name.includes('ai') || name.includes('artificial') || name.includes('intelligence') || 
+        name.includes('ml') || name.includes('machine') || name.includes('learning') ||
+        name.includes('neural') || name.includes('deep')) {
+      return <Brain className="w-5 h-5" />;
+    }
+    
+    // Programming/Code related folders
+    if (name.includes('code') || name.includes('programming') || name.includes('python') ||
+        name.includes('javascript') || name.includes('react') || name.includes('algorithm') ||
+        name.includes('development') || name.includes('software')) {
+      return <Code className="w-5 h-5" />;
+    }
+    
+    // Data Science/Analytics related folders
+    if (name.includes('data') || name.includes('analytics') || name.includes('statistics') ||
+        name.includes('analysis') || name.includes('visualization') || name.includes('science')) {
+      return <BarChart3 className="w-5 h-5" />;
+    }
+    
+    // Database related folders
+    if (name.includes('database') || name.includes('sql') || name.includes('db') ||
+        name.includes('storage') || name.includes('query')) {
+      return <Database className="w-5 h-5" />;
+    }
+    
+    // Documentation/Notes related folders
+    if (name.includes('doc') || name.includes('note') || name.includes('guide') ||
+        name.includes('tutorial') || name.includes('reference') || name.includes('manual')) {
+      return <FileText className="w-5 h-5" />;
+    }
+    
+    // Research/Theory related folders
+    if (name.includes('research') || name.includes('theory') || name.includes('concept') ||
+        name.includes('idea') || name.includes('innovation') || name.includes('study')) {
+      return <Lightbulb className="w-5 h-5" />;
+    }
+    
+    // Default folder icon
+    return <Folder className="w-5 h-5" />;
+  };
 
   useEffect(() => {
     if (id) {
-      fetchCategoryAndNotes(id);
+      fetchCategoryAndNotes(id, folderId);
     }
-  }, [id]);
+  }, [id, folderId]);
 
-  const fetchCategoryAndNotes = async (categoryId: string) => {
+  const buildBreadcrumb = (folder: Folder | null, category: Category): { name: string; path: string }[] => {
+    const breadcrumb = [{ name: category.name, path: `/category/${category.id}` }];
+    
+    if (folder) {
+      const folderPath = getFolderPath(folder.id);
+      const pathParts = folderPath.split(' > ');
+      
+      // Build breadcrumb for nested folders
+      let currentPath = `/category/${category.id}`;
+      pathParts.forEach((part, index) => {
+        const folderForPart = folders.find(f => f.name === part && f.category_id === category.id);
+        if (folderForPart) {
+          currentPath = `/category/${category.id}?folder=${folderForPart.id}`;
+          breadcrumb.push({ name: part, path: currentPath });
+        }
+      });
+    }
+    
+    return breadcrumb;
+  };
+
+  const fetchCategoryAndNotes = async (categoryId: string, folderIdParam?: string | null) => {
     try {
       // Fetch category details
       const { data: categoryData, error: categoryError } = await supabase
@@ -33,13 +109,35 @@ export function CategoryPage() {
       if (categoryError) throw categoryError;
       setCategory(categoryData);
 
-      // Fetch notes in this category
-      const { data: notesData, error: notesError } = await supabase
+      // Fetch folder details if folder ID is provided
+      if (folderIdParam) {
+        const { data: folderData, error: folderError } = await supabase
+          .from('folders')
+          .select('*')
+          .eq('id', folderIdParam)
+          .single();
+
+        if (folderError) throw folderError;
+        setSelectedFolder(folderData);
+      } else {
+        setSelectedFolder(null);
+      }
+      // Fetch notes in this category/folder
+      let notesQuery = supabase
         .from('notes')
         .select('*')
         .eq('category_id', categoryId)
         .eq('is_archived', false)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('title', { ascending: true });
+      
+      if (folderIdParam) {
+        notesQuery = notesQuery.eq('folder_id', folderIdParam);
+      } else {
+        notesQuery = notesQuery.is('folder_id', null);
+      }
+      
+      const { data: notesData, error: notesError } = await notesQuery;
 
       if (notesError) throw notesError;
       setNotes(notesData || []);
@@ -49,6 +147,11 @@ export function CategoryPage() {
       setLoading(false);
     }
   };
+
+  // Get root folders and subfolders for the current folder
+  const categoryFolders = category ? getFoldersByCategory(category.id).filter(f => !f.parent_folder_id) : [];
+  const subfolders = selectedFolder ? getFoldersByParent(selectedFolder.id) : [];
+  const breadcrumb = category ? buildBreadcrumb(selectedFolder, category) : [];
 
   if (loading) {
     return (
@@ -82,23 +185,7 @@ export function CategoryPage() {
     <div className="space-y-8 animate-fade-in">
       {/* Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          <Link
-            to="/"
-            className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-          >
-            <Home className="w-4 h-4" />
-            <span>Home</span>
-          </Link>
-          <Link
-            to="/notes"
-            className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">All Notes</span>
-            <span className="sm:hidden">Notes</span>
-          </Link>
-        </div>
+        <BackButton fallbackTo="/notes" />
       </div>
 
       {/* Category Header */}
@@ -106,21 +193,48 @@ export function CategoryPage() {
         <div className="flex items-center space-x-4 mb-4">
           <div
             className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: category.color }}
+            style={{ backgroundColor: selectedFolder?.color || category.color }}
           >
-            <Folder className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <div className="text-white">
+              {selectedFolder ? getFolderIcon(selectedFolder.name) : <Folder className="w-5 h-5 sm:w-6 sm:h-6" />}
+            </div>
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
-              {category.name}
+              {selectedFolder ? selectedFolder.name : category.name}
             </h1>
-            {category.description && (
+            {selectedFolder ? (
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 mt-2">
+                {selectedFolder.description || `Sub-category in ${category.name}`}
+              </p>
+            ) : category.description && (
               <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 mt-2">
                 {category.description}
               </p>
             )}
           </div>
         </div>
+        
+        {/* Breadcrumb */}
+        {breadcrumb.length > 1 && (
+          <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {breadcrumb.map((crumb, index) => (
+              <React.Fragment key={crumb.path}>
+                {index > 0 && <ChevronRight className="w-4 h-4" />}
+                {index === breadcrumb.length - 1 ? (
+                  <span className="text-gray-900 dark:text-white font-medium">{crumb.name}</span>
+                ) : (
+                  <Link
+                    to={crumb.path}
+                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    {crumb.name}
+                  </Link>
+                )}
+              </React.Fragment>
+            ))}
+          </nav>
+        )}
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center space-x-1">
@@ -131,6 +245,31 @@ export function CategoryPage() {
             Free Access
           </span>
         </div>
+        
+        {/* Folders */}
+        {((selectedFolder && subfolders.length > 0) || (!selectedFolder && categoryFolders.length > 0)) && (
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              {selectedFolder ? 'Subfolders' : 'Folders'}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {(selectedFolder ? subfolders : categoryFolders).map((folder) => (
+                <Link
+                  key={folder.id}
+                  to={`/category/${category.id}?folder=${folder.id}`}
+                  className="flex items-center space-x-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                >
+                  <div className="text-gray-600 dark:text-gray-400">
+                    {getFolderIcon(folder.name)}
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {folder.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Notes Grid */}
@@ -139,10 +278,13 @@ export function CategoryPage() {
           <div className="text-center py-12">
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No notes in this category yet
+              {selectedFolder 
+                ? `No notes in this sub-category yet`
+                : `No notes in this category yet`
+              }
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Check back soon for new content in {category.name}.
+              Check back soon for new content in {selectedFolder?.name || category.name}.
             </p>
           </div>
         ) : (

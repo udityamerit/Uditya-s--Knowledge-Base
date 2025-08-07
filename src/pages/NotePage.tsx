@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { NoteView } from '../components/Notes/NoteView';
+import { BackButton } from '../components/Layout/BackButton';
 import type { Database } from '../lib/supabase';
 
 type Note = Database['public']['Tables']['notes']['Row'];
@@ -167,22 +168,7 @@ export function NotePage() {
     <div className="animate-fade-in">
       {/* Enhanced Navigation */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/"
-            className="inline-flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
-          >
-            <Home className="w-4 h-4" />
-            <span>Home</span>
-          </Link>
-          <Link
-            to="/notes"
-            className="inline-flex items-center space-x-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Notes</span>
-          </Link>
-        </div>
+        <BackButton fallbackTo="/notes" />
         
         {/* Author Credit */}
         <div className="hidden md:flex items-center space-x-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">

@@ -151,9 +151,6 @@ export function NoteCard({ note, category }: NoteCardProps) {
         </div>
 
         {/* Content Preview */}
-        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
-          {getPreview(note.content)}
-        </p>
 
         {/* Media Content Indicator */}
         {hasMediaContent && (

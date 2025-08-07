@@ -62,7 +62,7 @@ const skills = [
       description: 'A comprehensive repository designed to provide a structured, beginner-friendly learning path into the world of Machine Learning. It covers key concepts, popular libraries, and hands-on projects.',
       technologies: ['Python', 'NumPy', 'Pandas', 'Matplotlib', 'Scikit-Learn'],
       image: 'https://media.licdn.com/dms/image/v2/D5612AQH3d0qbHAAESA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1708025756567?e=2147483647&v=beta&t=cuMvdJ7iHFktjPB1Y5X-ibYhWf1UUAATzh3Kt8p7V6g',
-      github: 'https://github.com/udityamerit/Machine-Learning-For-Beginners',
+      github: 'https://github.com/udityamerit/Complete-Machine-Learning-For-Beginners',
       status: 'ongoing',
       highlights: ['Beginner-friendly tutorials', 'Hands-on projects', 'Popular ML libraries']
     },
@@ -128,7 +128,7 @@ const skills = [
   };
 
   const githubStats = {
-    repositories: '35+',
+    repositories: '40+',
     contributions: '1.1k+',
     languages: ['Python', 'Java', 'C++', 'C', 'Jupyter Notebook']
   };

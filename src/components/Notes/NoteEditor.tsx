@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Save, X, Eye, EyeOff, Upload, Plus } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import { FileUploadPanel } from './FileUploadPanel';
+import { useFolders } from '../../hooks/useFolders';
 import type { Database } from '../../lib/supabase';
 
 type Note = Database['public']['Tables']['notes']['Row'];
@@ -14,6 +15,7 @@ interface NoteEditorProps {
     title: string;
     content: string;
     category_id?: string;
+    folder_id?: string;
     tags: string[];
   }) => Promise<void>;
   onCancel: () => void;
@@ -24,10 +26,33 @@ export function NoteEditor({ note, categories, onSave, onCancel, loading }: Note
   const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
   const [categoryId, setCategoryId] = useState(note?.category_id || '');
+  const [folderId, setFolderId] = useState(note?.folder_id || '');
   const [tags, setTags] = useState<string[]>(note?.tags || []);
   const [tagInput, setTagInput] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
   const [showUploadPanel, setShowUploadPanel] = useState(false);
+  
+  const { folders, getFoldersByCategory } = useFolders();
+  
+  // Get folders for selected category
+  const availableFolders = categoryId ? getFoldersByCategory(categoryId).filter(f => !f.parent_folder_id) : [];
+  const [selectedParentFolder, setSelectedParentFolder] = useState<string>('');
+  const subfolders = selectedParentFolder ? folders.filter(f => f.parent_folder_id === selectedParentFolder) : [];
+  
+  // Reset folder when category changes
+  useEffect(() => {
+    if (categoryId !== note?.category_id) {
+      setFolderId('');
+      setSelectedParentFolder('');
+    }
+  }, [categoryId, note?.category_id]);
+
+  // Update available subfolders when parent folder changes
+  useEffect(() => {
+    if (selectedParentFolder && !subfolders.find(f => f.id === folderId)) {
+      setFolderId('');
+    }
+  }, [selectedParentFolder, subfolders, folderId]);
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ',') {
@@ -57,6 +82,7 @@ export function NoteEditor({ note, categories, onSave, onCancel, loading }: Note
       title: title.trim(),
       content: content.trim(),
       category_id: categoryId || undefined,
+      folder_id: folderId || undefined,
       tags
     });
   };
@@ -155,6 +181,80 @@ export function NoteEditor({ note, categories, onSave, onCancel, loading }: Note
             ))}
           </select>
         </div>
+
+        {/* Sub-Category (Folder) */}
+        {categoryId && (
+          <div>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="parentFolder" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Parent Folder - Optional
+                </label>
+                <select
+                  id="parentFolder"
+                  value={selectedParentFolder}
+                  onChange={(e) => setSelectedParentFolder(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
+                >
+                  <option value="">No parent folder (root level)</option>
+                  {availableFolders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedParentFolder && subfolders.length > 0 && (
+                <div>
+                  <label htmlFor="subfolder" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Subfolder - Optional
+                  </label>
+                  <select
+                    id="subfolder"
+                    value={folderId}
+                    onChange={(e) => setFolderId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
+                  >
+                    <option value="">Place in parent folder</option>
+                    {subfolders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {!selectedParentFolder && (
+                <div>
+                  <label htmlFor="folder" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Folder - Optional
+                  </label>
+                  <select
+                    id="folder"
+                    value={folderId}
+                    onChange={(e) => setFolderId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
+                  >
+                    <option value="">No folder (place in main category)</option>
+                    {availableFolders.map((folder) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {availableFolders.length === 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  No folders available for this category. Content will be placed in the main category.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         <div>

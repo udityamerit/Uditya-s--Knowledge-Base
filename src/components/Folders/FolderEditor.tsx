@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, X, Folder, Palette } from 'lucide-react';
+import { BackButton } from '../Layout/BackButton';
 import type { Database } from '../../lib/supabase';
 
 type Folder = Database['public']['Tables']['folders']['Row'];
@@ -9,6 +10,7 @@ interface FolderEditorProps {
   folder?: Folder;
   categories: Category[];
   selectedCategoryId?: string;
+  parentFolderId?: string;
   onSave: (data: {
     name: string;
     description: string;
@@ -19,6 +21,8 @@ interface FolderEditorProps {
   onCancel: () => void;
   loading?: boolean;
 }
+
+import { useFolders } from '../../hooks/useFolders';
 
 const predefinedColors = [
   '#3B82F6', // Blue
@@ -35,11 +39,41 @@ const predefinedColors = [
   '#A855F7', // Violet
 ];
 
-export function FolderEditor({ folder, categories, selectedCategoryId, onSave, onCancel, loading }: FolderEditorProps) {
+export function FolderEditor({ folder, categories, selectedCategoryId, parentFolderId, onSave, onCancel, loading }: FolderEditorProps) {
+  const { folders, getFoldersByCategory, getFolderPath, getDescendantFolders } = useFolders();
   const [name, setName] = useState(folder?.name || '');
   const [description, setDescription] = useState(folder?.description || '');
   const [categoryId, setCategoryId] = useState(folder?.category_id || selectedCategoryId || '');
+  const [selectedParentId, setSelectedParentId] = useState(folder?.parent_folder_id || parentFolderId || '');
   const [color, setColor] = useState(folder?.color || '#6B7280');
+
+  // Get available parent folders (exclude self and descendants to prevent circular references)
+  const getAvailableParentFolders = () => {
+    if (!categoryId) return [];
+    
+    let availableFolders = getFoldersByCategory(categoryId);
+    
+    if (folder) {
+      // Exclude the folder itself
+      availableFolders = availableFolders.filter(f => f.id !== folder.id);
+      
+      // Exclude all descendant folders to prevent circular references
+      const descendants = getDescendantFolders(folder.id);
+      const descendantIds = new Set(descendants.map(d => d.id));
+      availableFolders = availableFolders.filter(f => !descendantIds.has(f.id));
+    }
+    
+    return availableFolders;
+  };
+
+  const availableParentFolders = getAvailableParentFolders();
+
+  // Reset parent folder when category changes
+  useEffect(() => {
+    if (categoryId !== folder?.category_id) {
+      setSelectedParentId('');
+    }
+  }, [categoryId, folder?.category_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +83,8 @@ export function FolderEditor({ folder, categories, selectedCategoryId, onSave, o
       name: name.trim(),
       description: description.trim(),
       category_id: categoryId,
-      color
+      color,
+      parent_folder_id: selectedParentId || undefined
     });
   };
 
@@ -59,9 +94,11 @@ export function FolderEditor({ folder, categories, selectedCategoryId, onSave, o
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-              {folder ? 'Edit Folder' : 'Create New Folder'}
-            </h2>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                {folder ? 'Edit Folder' : 'Create New Folder'}
+              </h2>
+            </div>
             <button
               type="button"
               onClick={onCancel}
@@ -107,6 +144,38 @@ export function FolderEditor({ folder, categories, selectedCategoryId, onSave, o
               ))}
             </select>
           </div>
+
+          {/* Parent Folder */}
+          {categoryId && (
+            <div>
+              <label htmlFor="parentFolder" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Parent Folder (Optional)
+              </label>
+              <select
+                id="parentFolder"
+                value={selectedParentId}
+                onChange={(e) => setSelectedParentId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base"
+              >
+                <option value="">No parent folder (root level)</option>
+                {availableParentFolders.map((parentFolder) => (
+                  <option key={parentFolder.id} value={parentFolder.id}>
+                    {getFolderPath(parentFolder.id)}
+                  </option>
+                ))}
+              </select>
+              {availableParentFolders.length === 0 && categoryId && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  No available parent folders in this category. This folder will be created at the root level.
+                </p>
+              )}
+              {folder && selectedParentId && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  💡 Moving this folder will also move all its subfolders and notes.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Description */}
           <div>

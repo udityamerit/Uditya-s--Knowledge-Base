@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { LoginForm } from '../components/Auth/LoginForm';
+import { BackButton } from '../components/Layout/BackButton';
 import { useAuth } from '../hooks/useAuth';
 
 export function LoginPage() {
@@ -20,6 +21,11 @@ export function LoginPage() {
 
   return (
     <div>
+      {/* Navigation */}
+      <div className="fixed top-4 left-4 z-50">
+        <BackButton fallbackTo="/" />
+      </div>
+      
       <LoginForm onSuccess={() => window.location.href = '/admin'} />
       
       {/* Public Access Notice */}

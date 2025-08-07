@@ -45,6 +45,7 @@ export type Database = {
           is_archived: boolean;
           created_at: string;
           updated_at: string;
+          folder_id: string | null;
         };
         Insert: {
           id?: string;
@@ -55,6 +56,7 @@ export type Database = {
           is_archived?: boolean;
           created_at?: string;
           updated_at?: string;
+          folder_id?: string | null;
         };
         Update: {
           id?: string;
@@ -65,6 +67,39 @@ export type Database = {
           is_archived?: boolean;
           created_at?: string;
           updated_at?: string;
+          folder_id?: string | null;
+        };
+      };
+      folders: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          category_id: string;
+          parent_folder_id: string | null;
+          color: string | null;
+          sort_order: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          category_id: string;
+          parent_folder_id?: string | null;
+          color?: string | null;
+          sort_order?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          category_id?: string;
+          parent_folder_id?: string | null;
+          color?: string | null;
+          sort_order?: number | null;
+          created_at?: string;
         };
       };
       admin_users: {

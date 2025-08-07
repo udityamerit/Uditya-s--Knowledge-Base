@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { NoteEditor } from '../components/Notes/NoteEditor';
+import { BackButton } from '../components/Layout/BackButton';
 import { useNotes } from '../hooks/useNotes';
 import type { Database } from '../lib/supabase';
 
@@ -97,6 +98,11 @@ export function NoteEditorPage() {
 
   return (
     <div className="relative">
+      {/* Navigation */}
+      <div className="mb-6">
+        <BackButton fallbackTo="/admin" />
+      </div>
+      
       {/* Success Message Overlay */}
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

@@ -22,7 +22,8 @@ export function useNotes() {
         .from('notes')
         .select('*')
         .eq('is_archived', false)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('title', { ascending: true });
 
       if (error) throw error;
       setNotes(data || []);
@@ -47,7 +48,7 @@ export function useNotes() {
     }
   };
 
-  const createNote = async (note: { title: string; content: string; category_id?: string; tags?: string[] }) => {
+  const createNote = async (note: { title: string; content: string; category_id?: string; folder_id?: string; tags?: string[] }) => {
     try {
       const { data, error } = await supabase
         .from('notes')
@@ -104,7 +105,8 @@ export function useNotes() {
         .select('*')
         .eq('is_archived', false)
         .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('title', { ascending: true });
 
       if (error) throw error;
       return data || [];

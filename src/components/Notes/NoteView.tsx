@@ -475,6 +475,15 @@ ${note.content}
                 <Edit className="w-5 h-5" />
               </Link>
             )}
+            
+            {/* Back Button */}
+            <button
+              onClick={() => window.history.back()}
+              className="p-2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
           </div>
         </div>
 

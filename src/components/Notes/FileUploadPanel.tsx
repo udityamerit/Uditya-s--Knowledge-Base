@@ -697,6 +697,12 @@ export function FileUploadPanel({ onFileInsert, onClose }: FileUploadPanelProps)
                   <span>Save All to Note</span>
                 </button>
               )}
+              <button
+                onClick={onClose}
+                className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm sm:text-base"
+              >
+                <span>Back</span>
+              </button>
             </div>
           </div>
         </div>
