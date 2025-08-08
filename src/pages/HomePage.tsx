@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, BookOpen, Clock, TrendingUp, Download, Users, ChevronRight, Folder, Brain, Code, Database, BarChart3, FileText, Lightbulb } from 'lucide-react';
+import { Search, BookOpen, Clock, TrendingUp, Download, Users, ChevronRight, Folder, Brain, Code, Database as DatabaseIcon, BarChart3, FileText, Lightbulb } from 'lucide-react';
 import { NoteCard } from '../components/Notes/NoteCard';
 import { BackButton } from '../components/Layout/BackButton';
 import { useNotes } from '../hooks/useNotes';
@@ -65,7 +65,7 @@ export function HomePage() {
     // Database related folders
     if (name.includes('database') || name.includes('sql') || name.includes('db') ||
         name.includes('storage') || name.includes('query')) {
-      return <Database className="w-4 h-4" />;
+      return <DatabaseIcon className="w-4 h-4" />;
     }
     
     // Documentation/Notes related folders
